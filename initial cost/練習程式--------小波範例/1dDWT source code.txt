@@ -1,0 +1,83 @@
+//=================================================================
+// Name : wavedemo1.cpp
+// Author :
+// Version :
+// Copyright :
+// Description : 1D DWT Demo
+//==============================================================
+#include <iostream>
+#include <fstream>
+#include "wavelet2d.h"
+#include <vector>
+#include <string>
+#include <cmath>
+using namespace std;
+int main() {
+	cout << "********J- LEVEL DISCRETE WAVELET TRANSFORM IMPLEMENTATION*********" << endl;
+	cout << "This program accepts signal from the user in a file format " << endl;
+	cout << "and performs Discrete Wavelet Transform with specified " << endl;
+	cout << "wavelet. " << endl;
+	cout << " " << endl;
+	cout << " The Following Wavelets are in the Database: " << endl;
+	cout << " haar, db1, db2, db3, db4, db5, db6, db7, db8, db9, db10, " << endl;
+	cout << " db11, db12, db13, db14, db15. " << endl;
+	cout << " bior1.1, bio1.3, bior1.5, bior2.2, bior2.4,bior2.6,bior2.8, " << endl;
+	cout << " bior3.1, bior3.3, bior3.5, bior3.7, bior3.9, bior4.4," << endl;
+	cout << " bior5.5, bior6.8." << endl;
+	cout << " coif1, coif2, coif3, coif4, coif5." << endl;
+	cout << "Please Enter the Wavelet Name at the Prompt( No quotes) :" << endl;
+	string nm; // nm will store the name of Wavelet Family
+	cin >> nm;
+	cout << "Enter the name of signal file at the Prompt eg., signal.txt :" << endl;
+	char inp[50];
+	cin >> inp;
+	ifstream sig_inp(inp);//輸入型態的資料串流(檔案是輸入，file=鍵盤cin，就是指從檔案中讀取數值到變數(compare to cin)
+	vector<double> sig;//串流存入 sig (file cin到sig)
+	
+	
+	if (!sig_inp.good()) {//判斷串流是否正常
+		cout << "The File doesn’t exist" << endl;
+	}
+	while (sig_inp) {
+		double temp;
+		sig_inp >> temp;
+		sig.push_back(temp);
+	}
+	sig.pop_back();//會把結束跳脫字元讀入
+	vector<double> original;
+	original = sig;
+	cout << "Please Enter the Number of DWT Stages J :" << endl;
+	int J;
+	cin >> J;
+	vector<double> dwt_output, flag;
+
+
+	// perform J-Level DWT
+	vector<int> length;	
+	dwt_sym(sig, J, nm, dwt_output, flag, length);//訊號 轉換次數 基底名稱 輸出變數名稱 flag[0],0=偶1=奇;[1]=轉換次數 length
+
+	//把結果存到dwout裡
+	ofstream dwtout("dwtout.txt");
+	for (unsigned int i = 0; i < dwt_output.size(); i++) {
+		dwtout << dwt_output[i] << endl;
+	}
+
+
+	//Perform J-Level IDWT
+	vector<double> output;
+	idwt_sym(dwt_output, flag, nm, output, length);
+
+
+
+	ofstream sig1("recon.txt");//是輸出型串流，串流輸出到file
+	ofstream diff("diff.txt");
+	cout << " Recon signal size" << output.size() << endl;
+	//把結果存到輸出串流中(結果cout到file)，cout輸出到螢幕，(輸出串流<<)輸出到檔案中
+	for (unsigned int i = 0; i < output.size(); i++) {
+		sig1 << output[i] << endl;
+		diff << output[i] - original[i] << endl;
+	}
+	system("pause");
+	//gnudwtplot(J);
+	return 0;
+}
